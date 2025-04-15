@@ -1,23 +1,25 @@
-# config.py
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
-# Time in seconds between screenshots
-SCREENSHOT_INTERVAL = 300  # 5 minutes
 
-# Local save directory
+SCREENSHOT_INTERVAL = 10  # 5 minutes
+
 LOCAL_SAVE_DIR = os.path.expanduser("~/Desktop/screenshots")
 
-# Remote server directory (this is just a string path, not code)
+CONVERTED_DIR = os.path.join(LOCAL_SAVE_DIR, "converted")
+
+# os.makedirs(LOCAL_SAVE_DIR, exist_ok=True)
+# os.makedirs(CONVERTED_DIR, exist_ok=True)
+
 REMOTE_DIR = "/home/username/screenshots/"
 
-# Optional: if you need upload time logic elsewhere
-DAILY_UPLOAD_HOUR = 17  # 5 PM
-DAILY_UPLOAD_MINUTE = 0
+DAILY_UPLOAD_TIME = "17:19"
 
-# SFTP_CONFIG = {
-#     hostname: your.server.ip,
-#     port: 22,
-#     username: your_user,
-#     password: your_password,  # consider using SSH key for prod
-# }
+SFTP_CONFIG = {
+    "host": os.getenv("SFTP_HOST"),
+    "port": 22,
+    "username": os.getenv("SFTP_USER"),
+    "password": os.getenv("SFTP_PASS")
+}
 
