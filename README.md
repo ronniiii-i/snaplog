@@ -5,9 +5,9 @@ Snaplog is a lightweight Python app that automatically captures screenshots of a
 ## 🔧 Features
 
 - Starts monitoring once the system is active
-- Takes screenshots every X minutes (configurable)
+- Takes screenshots every 5 minutes (configurable)
 - Saves screenshots as `.binn` files in a local directory
-- Moves and renames screenshots to `.jpg` on a remote server daily
+- Moves and renames screenshots to `.png` on a remote server daily
 - Automatically clears local files after successful upload
 
 ## ⚙️ Configuration
@@ -17,8 +17,8 @@ Edit `config.py` to set:
 ```python
 SCREENSHOT_INTERVAL = 300  # seconds
 DAILY_UPLOAD_TIME = "17:00"  # 24-hour format
-LOCAL_SAVE_DIR = "C:/Users/YourName/Desktop/screenshots"
-REMOTE_DIR = "/remote/server/path/screenshots/"
+LOCAL_SAVE_DIR = "C:/Users/YourName/Desktop/screenshots" # path to save screenshots locally
+REMOTE_DIR = "/remote/server/path/screenshots/" # path to upload screenshots to
 SERVER_CONFIG = {
     "hostname": "your.server.ip",
     "username": "your-username",
@@ -44,18 +44,19 @@ SERVER_CONFIG = {
 ## 📦 Dependencies
 
 - `mss` – for capturing screenshots
-- `paramiko` – for SSH file transfer (if you add upload logic)
+- `pillow` – for image processing
+- `paramiko` – for SSH file transfer
 
 Install with:
 
 ```bash
-pip install mss paramiko
+pip install mss paramiko pillow
 ```
 
 ## 🚧 Roadmap
 
 - [ ] Auto-start on system boot
-- [ ] More secure file transfer (SFTP/SSH key support)
+- [x] More secure file transfer (SFTP/SSH key support)
 - [ ] Encrypted storage
 - [ ] Dashboard for viewing uploads (future)
 

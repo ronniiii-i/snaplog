@@ -1,26 +1,51 @@
-from PIL import Image
-import numpy as np
+import os
+import uuid
+import subprocess
+from datetime import datetime
+from mss import tools
+import mss
 
-def convert_binn_to_png(binn_file_path, output_path):
-    with open(binn_file_path, "rb") as f:
-        # Read the raw bytes
-        raw_data = f.read()
+from config import LOCAL_SAVE_DIR, CONVERTED_DIR
 
-    # The width and height of the screen for this example
-    # You should match these to the screen resolution or the monitor you're capturing
-    screen_width = 1920
-    screen_height = 1080
+DEVICE_ID_FILE = os.path.join(LOCAL_SAVE_DIR, "device_id.txt")
+if os.path.exists(DEVICE_ID_FILE):
+    with open(DEVICE_ID_FILE, "r") as f:
+        DEVICE_ID = f.read().strip()
+else:
+    DEVICE_ID = str(uuid.uuid4())
+    with open(DEVICE_ID_FILE, "w") as f:
+        f.write(DEVICE_ID)
 
-    # Convert raw data to a numpy array (it should be in RGB format)
-    img_array = np.frombuffer(raw_data, dtype=np.uint8)
-    img_array = img_array.reshape((screen_height, screen_width, 3))  # RGB image
+# Create folder if it doesn't exist
+os.makedirs(CONVERTED_DIR, exist_ok=True)
 
-    # Create an Image from the array
-    img = Image.fromarray(img_array)
 
-    # Save the image as PNG
-    img.save(output_path)
-    print(f"Image saved to {output_path}")
+def convert_binn_to_png():
+    for file in os.listdir(LOCAL_SAVE_DIR):
+        if file.endswith(".binn"):
+            binn_path = os.path.join(LOCAL_SAVE_DIR, file)
+            timestamp =  file.replace("screen_", "").replace(".binn", "")
+            png_name = f"{DEVICE_ID}_{timestamp}.png"
+            png_path = os.path.join(CONVERTED_DIR, png_name)
 
-# Example usage:
-convert_binn_to_png("../screenshots/screen_20250414_162649.binn", "output_image.png")
+            with mss.mss() as sct:
+                raw = open(binn_path, "rb").read()
+                monitor = sct.monitors[1]
+                img = tools.to_png(raw, (monitor["width"], monitor["height"]))
+                with open(png_path, "wb") as out:
+                    out.write(img)
+
+            print(f"[✓] Converted: {file} → {png_name}")
+            os.remove(binn_path)
+
+
+def trigger_transfer():
+    try:
+        subprocess.run(["python", "transfer.py"], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"[x] Transfer failed: {e}")
+
+
+if __name__ == "__main__":
+    convert_binn_to_png()
+    trigger_transfer()
