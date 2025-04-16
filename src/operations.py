@@ -1,4 +1,3 @@
-# src/operations.py
 import os
 import uuid
 import subprocess
