@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-SCREENSHOT_INTERVAL = 10  # 5 minutes
+SCREENSHOT_INTERVAL = 300  # 5 minutes
 
 LOCAL_SAVE_DIR = os.path.expanduser("~/Desktop/screenshots")
 
