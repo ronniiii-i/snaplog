@@ -16,7 +16,7 @@ DEVICE_ID_FILE = os.path.join(LOCAL_SAVE_DIR, "device_id.txt")
 
 REMOTE_DIR = "/home/username/screenshots/"
 
-DAILY_UPLOAD_TIME = "17:40"
+DAILY_UPLOAD_TIME = "17:00"  # 5 PM
 
 SFTP_CONFIG = {
     "host": os.getenv("SFTP_HOST"),
