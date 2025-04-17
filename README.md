@@ -1,65 +1,103 @@
-# Snaplog
+# SnapLog - Automated Screenshot Monitor
 
-Snaplog is a lightweight Python app that automatically captures screenshots of a computer at set intervals and stores them locally as binary files. At a scheduled time, those screenshots are moved to a remote server for review and then deleted from the local machine.
+## Overview
 
-## 🔧 Features
+SnapLog is an automated screenshot monitoring system that:
 
-- Starts monitoring once the system is active
-- Takes screenshots every 5 minutes (configurable)
-- Saves screenshots as `.binn` files in a local directory
-- Moves and renames screenshots to `.png` on a remote server daily
-- Automatically clears local files after successful upload
+- Takes periodic screenshots of your primary monitor
+- Stores them locally in a binary format (.binn)
+- Converts them to PNG format with device-specific identifiers
+- Transfers them to a remote server via SFTP at a scheduled time
 
-## ⚙️ Configuration
+## Features
 
-Edit `config.py` to set:
+- **Scheduled Capture**: Takes screenshots at regular intervals (default: 5 minutes)
+- **Secure Transfer**: Uses SFTP for encrypted file transfers
+- **Device Identification**: Generates unique device IDs for screenshot tracking
+- **Automatic Conversion**: Converts binary screenshots to standard PNG format
+- **Scheduled Uploads**: Transfers files daily at a specified time (default: 5 PM)
+- **Logging**: Comprehensive logging for monitoring and debugging
 
-```python
-SCREENSHOT_INTERVAL = 300  # seconds
-DAILY_UPLOAD_TIME = "17:00"  # 24-hour format
-LOCAL_SAVE_DIR = "C:/Users/YourName/Desktop/screenshots" # path to save screenshots locally
-REMOTE_DIR = "/remote/server/path/screenshots/" # path to upload screenshots to
-SERVER_CONFIG = {
-    "hostname": "your.server.ip",
-    "username": "your-username",
-    "password": "your-password"
-}
-```
+## Installation
 
-## ▶️ Usage
+1. Clone the repository:
 
-1. Clone the repo
+   ```bash
+   git clone https://github.com/yourusername/snaplog.git
+   cd snaplog
+   ```
+
 2. Install dependencies:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-3. Run the monitor:
+3. Create a `.env` file in the project root with your SFTP credentials:
 
-   ```bash
-   python monitor.py
+   ```env
+   SFTP_HOST=your.sftp.server
+   SFTP_USER=your_username
+   SFTP_PASS=your_password
    ```
 
-## 📦 Dependencies
+## Usage
 
-- `mss` – for capturing screenshots
-- `pillow` – for image processing
-- `paramiko` – for SSH file transfer
-
-Install with:
+Run the main application:
 
 ```bash
-pip install mss paramiko pillow
+python main.py
 ```
 
-## 🚧 Roadmap
+The application will:
 
-- [ ] Auto-start on system boot
-- [x] More secure file transfer (SFTP/SSH key support)
-- [ ] Encrypted storage
-- [ ] Dashboard for viewing uploads (future)
+1. Create necessary directories (`~/Desktop/screenshots` and subdirectories)
+2. Start capturing screenshots every 5 minutes (configurable)
+3. Run conversion and transfer at the scheduled time (default: 5 PM)
+4. Exit after successful transfer (should be run as a daily scheduled task)
 
-## 📄 License
+## Configuration
 
-MIT License. Do whatever—just don't be shady.
+Modify `src/config.py` to adjust settings:
+
+```python
+SCREENSHOT_INTERVAL = 300  # Capture interval in seconds (5 minutes)
+DAILY_UPLOAD_TIME = "17:00"  # 24-hour format
+LOCAL_SAVE_DIR = "~/Desktop/screenshots"  # Local storage location
+REMOTE_DIR = "/home/username/screenshots/"  # Remote directory path
+```
+
+## File Structure
+
+```tree
+snaplog/
+├── src/
+│   ├── config.py       # Configuration settings
+│   ├── monitor.py      # Screenshot monitoring service
+│   └── operations.py   # File conversion and transfer operations
+├── main.py             # Main application entry point
+├── .env                # Environment variables (not tracked by git)
+└── logs/               # Log files directory
+```
+
+## Requirements
+
+- Python 3.7+
+- Required packages (see `requirements.txt`):
+  - `mss` (for screenshot capture)
+  - `paramiko` (for SFTP transfers)
+  - `python-dotenv` (for environment variables)
+
+## Logging
+
+Application logs are stored in `logs/snaplog.log`. SFTP-specific logs are stored in `logs/paramiko.log`.
+
+## Notes
+
+- The application will create a unique device ID on first run (stored in `device_id.txt`)
+- After successful transfer, the application exits and should be restarted (ideal for daily scheduled tasks)
+- Keyboard interrupt (Ctrl+C) will gracefully shut down the monitoring service
+
+## License
+
+[MIT License](LICENSE) Do whatever—just don't be shady.
