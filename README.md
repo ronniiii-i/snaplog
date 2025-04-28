@@ -87,6 +87,7 @@ snaplog/
   - `mss` (for screenshot capture)
   - `paramiko` (for SFTP transfers)
   - `python-dotenv` (for environment variables)
+  - `wmi` (for device identification)
 
 ## Logging
 

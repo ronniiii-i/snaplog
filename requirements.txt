@@ -2,3 +2,4 @@ mss
 paramiko
 schedule
 pillow
+wmi
