@@ -1,40 +1,35 @@
-# transfer.py
-
 import os
 import schedule
 import time
-import paramiko
-from config import CONVERTED_DIR, REMOTE_DIR, SFTP_CONFIG, DAILY_UPLOAD_TIME
+import shutil
+from config import CONVERTED_DIR, NETWORK_PATH, DAILY_UPLOAD_TIME
 
-def upload_files():
+def transfer_files():
     try:
         print("[*] Starting file transfer...")
 
-        transport = paramiko.Transport((SFTP_CONFIG["host"], SFTP_CONFIG["port"]))
-        transport.connect(username=SFTP_CONFIG["username"], password=SFTP_CONFIG["password"])
-        sftp = paramiko.SFTPClient.from_transport(transport)
+        # Create network path directory if it doesn't exist
+        os.makedirs(NETWORK_PATH, exist_ok=True)
 
         for file in os.listdir(CONVERTED_DIR):
             local_path = os.path.join(CONVERTED_DIR, file)
-            remote_path = os.path.join(REMOTE_DIR, file)
+            network_path = os.path.join(NETWORK_PATH, file)
             
-            sftp.put(local_path, remote_path)
-            print(f"[+] Uploaded: {file}")
+            # Copy file to network path
+            shutil.copy2(local_path, network_path)
+            print(f"[+] Transferred: {file}")
             
-            # Remove local file after upload
+            # Remove local file after transfer
             os.remove(local_path)
             print(f"[x] Deleted local copy: {file}")
 
-
-        sftp.close()
-        transport.close()
         print("[*] Transfer complete.")
 
     except Exception as e:
         print(f"[!] Error during transfer: {e}")
 
 def schedule_transfer():
-    schedule.every().day.at(DAILY_UPLOAD_TIME).do(upload_files)
+    schedule.every().day.at(DAILY_UPLOAD_TIME).do(transfer_files)
 
     while True:
         schedule.run_pending()
@@ -42,5 +37,4 @@ def schedule_transfer():
 
 if __name__ == "__main__":
     # schedule_transfer()
-    upload_files()
-
+    transfer_files()

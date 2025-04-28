@@ -4,62 +4,39 @@ import subprocess
 from datetime import datetime
 from mss import tools
 import mss
-import paramiko
 import logging
 import traceback
+import shutil
 
 
 c = wmi.WMI() 
 my_system = c.Win32_ComputerSystem()[0]
 os.makedirs("logs", exist_ok=True)
-paramiko.util.log_to_file('logs/paramiko.log')
 from src.config import (LOCAL_SAVE_DIR, CONVERTED_DIR, 
-                       REMOTE_DIR, SFTP_CONFIG, DEVICE_ID_FILE)
+                       NETWORK_PATH, DEVICE_ID_FILE)
 
 class SnapLogOperations:
     def __init__(self):
         self.device_id = self._get_device_id()
         os.makedirs(CONVERTED_DIR, exist_ok=True)
-        self.transport = None
-        self.sftp = None
 
     def _get_device_id(self):
         """Handle device ID creation/loading"""
         return f"{os.getlogin()}@{my_system.Name}"
 
-    def _connect_sftp(self):
-        """Establish SFTP connection"""
+    def _ensure_network_dir(self):
+        """Ensure network directory exists"""
         try:
-            print("\n[SFTP] Connecting...")
-            self.transport = paramiko.Transport((SFTP_CONFIG["host"], SFTP_CONFIG["port"]))
-            self.transport.connect(
-                username=SFTP_CONFIG["username"],
-                password=SFTP_CONFIG["password"]
-            )
-            self.sftp = paramiko.SFTPClient.from_transport(self.transport)
-            print("[SFTP] Connection established")
+            if not os.path.exists(NETWORK_PATH):
+                os.makedirs(NETWORK_PATH, exist_ok=True)
+                print(f"[NETWORK] Created network directory: {NETWORK_PATH}")
+            else:
+                print(f"[NETWORK] Network directory exists: {NETWORK_PATH}")
             return True
         except Exception as e:
-            print(f"[SFTP] Connection failed: {str(e)}")
+            print(f"[NETWORK] Failed to access or create directory: {str(e)}")
             traceback.print_exc()
-            import sys; sys.stdout.flush()  # Make sure logs are visible
             return False
-
-
-    def _ensure_remote_dir(self):
-        """Ensure remote directory exists"""
-        try:
-            self.sftp.stat(REMOTE_DIR)
-            print(f"[SFTP] Remote directory exists: {REMOTE_DIR}")
-            return True
-        except IOError:
-            try:
-                self.sftp.mkdir(REMOTE_DIR)
-                print(f"[SFTP] Created remote directory: {REMOTE_DIR}")
-                return True
-            except Exception as e:
-                print(f"[SFTP] Failed to create directory: {str(e)}")
-                return False
 
     def convert_binn_to_png(self):
         """Convert .binn screenshots to .png"""
@@ -92,11 +69,8 @@ class SnapLogOperations:
         return bool(converted_files)  # Return True if any files were converted
 
     def transfer_files(self):
-        """Transfer converted files via SFTP"""
-        if not self._connect_sftp():
-            return False
-            
-        if not self._ensure_remote_dir():
+        """Transfer converted files to network path"""
+        if not self._ensure_network_dir():
             return False
             
         files_to_transfer = os.listdir(CONVERTED_DIR)
@@ -107,15 +81,14 @@ class SnapLogOperations:
         success_count = 0
         for file in files_to_transfer:
             local_path = os.path.join(CONVERTED_DIR, file)
-            remote_path = os.path.join(REMOTE_DIR, file)
+            network_path = os.path.join(NETWORK_PATH, file)
             
             try:
                 print(f"[→] Transferring {file}...")
-                self.sftp.put(local_path, remote_path)
+                shutil.copy2(local_path, network_path)
 
-                
                 # Verify transfer
-                if os.path.getsize(local_path) == self.sftp.stat(remote_path).st_size:
+                if os.path.getsize(local_path) == os.path.getsize(network_path):
                     os.remove(local_path)
                     success_count += 1
                     print(f"[✓] Transferred {file}")
@@ -124,36 +97,26 @@ class SnapLogOperations:
                     
             except Exception as e:
                 print(f"[!] Failed to transfer {file}: {str(e)}")
+                traceback.print_exc()
                 continue
                 
         return success_count > 0
 
-    def cleanup(self):
-        """Close connections"""
-        if self.sftp:
-            self.sftp.close()
-        if self.transport:
-            self.transport.close()
-
     def run_conversion_and_transfer(self):
         """Orchestrate full workflow"""
         try:
-            try:
-                if not self.convert_binn_to_png():
-                    print("[!] No files converted")
-                    return False
-
-                transfer_result = self.transfer_files()
-                if not transfer_result:
-                    print("[!] Transfer failed")
-                    return False
-
-                return True
-
-            except Exception as e:
-                print(f"[!!!] Fatal error in transfer pipeline: {str(e)}")
-                traceback.print_exc()
+            if not self.convert_binn_to_png():
+                print("[!] No files converted")
                 return False
 
-        finally:
-            self.cleanup()
+            transfer_result = self.transfer_files()
+            if not transfer_result:
+                print("[!] Transfer failed")
+                return False
+
+            return True
+
+        except Exception as e:
+            print(f"[!!!] Fatal error in transfer pipeline: {str(e)}")
+            traceback.print_exc()
+            return False
