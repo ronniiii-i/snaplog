@@ -1,5 +1,5 @@
 import os
-import uuid
+import wmi
 import subprocess
 from datetime import datetime
 from mss import tools
@@ -8,6 +8,9 @@ import paramiko
 import logging
 import traceback
 
+
+c = wmi.WMI() 
+my_system = c.Win32_ComputerSystem()[0]
 os.makedirs("logs", exist_ok=True)
 paramiko.util.log_to_file('logs/paramiko.log')
 from src.config import (LOCAL_SAVE_DIR, CONVERTED_DIR, 
@@ -22,13 +25,7 @@ class SnapLogOperations:
 
     def _get_device_id(self):
         """Handle device ID creation/loading"""
-        if os.path.exists(DEVICE_ID_FILE):
-            with open(DEVICE_ID_FILE, "r") as f:
-                return f.read().strip()
-        device_id = str(uuid.uuid4())
-        with open(DEVICE_ID_FILE, "w") as f:
-            f.write(device_id)
-        return device_id
+        return f"{os.getlogin()}@{my_system.Name}"
 
     def _connect_sftp(self):
         """Establish SFTP connection"""

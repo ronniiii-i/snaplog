@@ -1,7 +1,10 @@
 import os
+import wmi
 from dotenv import load_dotenv
 load_dotenv()
 
+c = wmi.WMI() 
+my_system = c.Win32_ComputerSystem()[0]
 
 SCREENSHOT_INTERVAL = 300  # 5 minutes
 
@@ -14,7 +17,7 @@ DEVICE_ID_FILE = os.path.join(LOCAL_SAVE_DIR, "device_id.txt")
 # os.makedirs(LOCAL_SAVE_DIR, exist_ok=True)
 # os.makedirs(CONVERTED_DIR, exist_ok=True)
 
-REMOTE_DIR = "/home/username/screenshots/"
+REMOTE_DIR = f"/home/{os.getlogin()}@{my_system.Name}/screenshots/"
 
 DAILY_UPLOAD_TIME = "17:00"  # 5 PM
 

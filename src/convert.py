@@ -1,5 +1,5 @@
+import wmi
 import os
-import uuid
 import subprocess
 from datetime import datetime
 from mss import tools
@@ -7,14 +7,11 @@ import mss
 
 from config import LOCAL_SAVE_DIR, CONVERTED_DIR
 
-DEVICE_ID_FILE = os.path.join(LOCAL_SAVE_DIR, "device_id.txt")
-if os.path.exists(DEVICE_ID_FILE):
-    with open(DEVICE_ID_FILE, "r") as f:
-        DEVICE_ID = f.read().strip()
-else:
-    DEVICE_ID = str(uuid.uuid4())
-    with open(DEVICE_ID_FILE, "w") as f:
-        f.write(DEVICE_ID)
+c = wmi.WMI() 
+my_system = c.Win32_ComputerSystem()[0]
+
+DEVICE_ID = f"{os.getlogin()}@{my_system.Name}"
+print(f"Device ID: {DEVICE_ID}")
 
 # Create folder if it doesn't exist
 os.makedirs(CONVERTED_DIR, exist_ok=True)
