@@ -7,15 +7,15 @@ SnapLog is an automated screenshot monitoring system that:
 - Takes periodic screenshots of your primary monitor
 - Stores them locally in a binary format (.binn)
 - Converts them to PNG format with device-specific identifiers
-- Transfers them to a remote server via SFTP at a scheduled time
+- Transfers them to a shared network location at a scheduled time
 
 ## Features
 
 - **Scheduled Capture**: Takes screenshots at regular intervals (default: 5 minutes)
-- **Secure Transfer**: Uses SFTP for encrypted file transfers
+- **Network Transfer**: Transfers files to a specified network path
 - **Device Identification**: Generates unique device IDs for screenshot tracking
 - **Automatic Conversion**: Converts binary screenshots to standard PNG format
-- **Scheduled Uploads**: Transfers files daily at a specified time (default: 5 PM)
+- **Scheduled Transfers**: Transfers files daily at a specified time (default: 5 PM)
 - **Logging**: Comprehensive logging for monitoring and debugging
 
 ## Installation
@@ -33,12 +33,10 @@ SnapLog is an automated screenshot monitoring system that:
    pip install -r requirements.txt
    ```
 
-3. Create a `.env` file in the project root with your SFTP credentials:
+3. Create a `.env` file in the project root with your network path:
 
    ```env
-   SFTP_HOST=your.sftp.server
-   SFTP_USER=your_username
-   SFTP_PASS=your_password
+   NETWORK_PATH=\\server\share\path
    ```
 
 ## Usage
@@ -64,7 +62,7 @@ Modify `src/config.py` to adjust settings:
 SCREENSHOT_INTERVAL = 300  # Capture interval in seconds (5 minutes)
 DAILY_UPLOAD_TIME = "17:00"  # 24-hour format
 LOCAL_SAVE_DIR = "~/Desktop/screenshots"  # Local storage location
-REMOTE_DIR = "/home/username/screenshots/"  # Remote directory path
+NETWORK_PATH = "\\\\server\\share\\path"  # Network path for file transfers
 ```
 
 ## File Structure
@@ -85,18 +83,19 @@ snaplog/
 - Python 3.7+
 - Required packages (see `requirements.txt`):
   - `mss` (for screenshot capture)
-  - `paramiko` (for SFTP transfers)
   - `python-dotenv` (for environment variables)
+  - `wmi` (for device identification)
 
 ## Logging
 
-Application logs are stored in `logs/snaplog.log`. SFTP-specific logs are stored in `logs/paramiko.log`.
+Application logs are stored in `logs/snaplog.log`.
 
 ## Notes
 
 - The application will create a unique device ID on first run (stored in `device_id.txt`)
 - After successful transfer, the application exits and should be restarted (ideal for daily scheduled tasks)
 - Keyboard interrupt (Ctrl+C) will gracefully shut down the monitoring service
+- Ensure your system has proper access permissions to the network path
 
 ## License
 
