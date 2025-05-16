@@ -2,3 +2,5 @@ mss
 paramiko
 schedule
 pillow
+wmi
+dotenv
