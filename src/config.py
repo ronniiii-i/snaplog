@@ -17,5 +17,5 @@ DEVICE_ID_FILE = os.path.join(LOCAL_SAVE_DIR, "device_id.txt")
 DAILY_UPLOAD_TIME = "17:00"  # 5 PM
 
 # NETWORK_PATH = f"//localhost/destination/{os.getlogin()}@{my_system.Name}/screenshots/"
-NETWORK_PATH = f"X:/{os.getlogin()}@{my_system.Name}/screenshots/"
+NETWORK_PATH = f"X:/{os.getlogin()}@{my_system.Name}/"
 # X:\

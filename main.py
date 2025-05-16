@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import logging
 from src.monitor import run_service
-from src.config import LOCAL_SAVE_DIR, CONVERTED_DIR
+from src.config import LOCAL_SAVE_DIR
 log_dir = os.path.join(os.path.dirname(__file__), 'logs')
 os.makedirs(log_dir, exist_ok=True)
 
@@ -19,8 +19,8 @@ def ensure_directories():
     """Ensure required directories exist"""
     try:
         os.makedirs(LOCAL_SAVE_DIR, exist_ok=True)
-        os.makedirs(CONVERTED_DIR, exist_ok=True)
-        logger.info(f"Directories verified: {LOCAL_SAVE_DIR}, {CONVERTED_DIR}")
+        # os.makedirs(CONVERTED_DIR, exist_ok=True)
+        logger.info(f"Directories verified: {LOCAL_SAVE_DIR}")
     except Exception as e:
         logger.error(f"Failed to create directories: {e}")
         raise

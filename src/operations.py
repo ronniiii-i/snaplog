@@ -12,13 +12,13 @@ import shutil
 c = wmi.WMI() 
 my_system = c.Win32_ComputerSystem()[0]
 os.makedirs("logs", exist_ok=True)
-from src.config import (LOCAL_SAVE_DIR, CONVERTED_DIR, 
+from src.config import (LOCAL_SAVE_DIR, 
                        NETWORK_PATH, DEVICE_ID_FILE)
 
 class SnapLogOperations:
     def __init__(self):
         self.device_id = self._get_device_id()
-        os.makedirs(CONVERTED_DIR, exist_ok=True)
+        # os.makedirs(CONVERTED_DIR, exist_ok=True)
 
     def _get_device_id(self):
         """Handle device ID creation/loading"""
@@ -38,49 +38,49 @@ class SnapLogOperations:
             traceback.print_exc()
             return False
 
-    def convert_binn_to_png(self):
-        """Convert .binn screenshots to .png"""
-        converted_files = []
-        for file in os.listdir(LOCAL_SAVE_DIR):
-            if not file.endswith(".binn"):
-                continue
+    # def convert_binn_to_png(self):
+    #     """Convert .binn screenshots to .png"""
+    #     converted_files = []
+    #     for file in os.listdir(LOCAL_SAVE_DIR):
+    #         if not file.endswith(".binn"):
+    #             continue
                 
-            binn_path = os.path.join(LOCAL_SAVE_DIR, file)
-            timestamp = file.replace("screen_", "").replace(".binn", "")
-            png_name = f"{self.device_id}_{timestamp}.png"
-            png_path = os.path.join(CONVERTED_DIR, png_name)
+    #         binn_path = os.path.join(LOCAL_SAVE_DIR, file)
+    #         timestamp = file.replace("screen_", "").replace(".binn", "")
+    #         png_name = f"{self.device_id}_{timestamp}.png"
+    #         png_path = os.path.join(CONVERTED_DIR, png_name)
 
-            try:
-                with mss.mss() as sct:
-                    raw = open(binn_path, "rb").read()
-                    monitor = sct.monitors[1]
-                    img = tools.to_png(raw, (monitor["width"], monitor["height"]))
-                    with open(png_path, "wb") as out:
-                        out.write(img)
+    #         try:
+    #             with mss.mss() as sct:
+    #                 raw = open(binn_path, "rb").read()
+    #                 monitor = sct.monitors[1]
+    #                 img = tools.to_png(raw, (monitor["width"], monitor["height"]))
+    #                 with open(png_path, "wb") as out:
+    #                     out.write(img)
                 
-                os.remove(binn_path)
-                converted_files.append(png_name)
-                print(f"[✓] Converted: {file} → {png_name}")
+    #             os.remove(binn_path)
+    #             converted_files.append(png_name)
+    #             print(f"[✓] Converted: {file} → {png_name}")
                 
-            except Exception as e:
-                print(f"[!] Failed to convert {file}: {str(e)}")
-                continue
+    #         except Exception as e:
+    #             print(f"[!] Failed to convert {file}: {str(e)}")
+    #             continue
                 
-        return bool(converted_files)  # Return True if any files were converted
+    #     return bool(converted_files)  # Return True if any files were converted
 
     def transfer_files(self):
-        """Transfer converted files to network path"""
+        """Transfer files to network path"""
         if not self._ensure_network_dir():
             return False
             
-        files_to_transfer = os.listdir(CONVERTED_DIR)
+        files_to_transfer = os.listdir(LOCAL_SAVE_DIR)
         if not files_to_transfer:
             print("[!] No files to transfer")
             return False
             
         success_count = 0
         for file in files_to_transfer:
-            local_path = os.path.join(CONVERTED_DIR, file)
+            local_path = os.path.join(LOCAL_SAVE_DIR, file)
             network_path = os.path.join(NETWORK_PATH, file)
             
             try:
@@ -105,9 +105,9 @@ class SnapLogOperations:
     def run_conversion_and_transfer(self):
         """Orchestrate full workflow"""
         try:
-            if not self.convert_binn_to_png():
-                print("[!] No files converted")
-                return False
+            # if not self.convert_binn_to_png():
+            #     print("[!] No files converted")
+            #     return False
 
             transfer_result = self.transfer_files()
             if not transfer_result:
