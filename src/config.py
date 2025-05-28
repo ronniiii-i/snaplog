@@ -8,14 +8,14 @@ my_system = c.Win32_ComputerSystem()[0]
 
 SCREENSHOT_INTERVAL = 300  # 5 minutes
 
-LOCAL_SAVE_DIR = os.path.expanduser("~/Desktop/screenshots")
+LOCAL_SAVE_DIR = os.path.expanduser("~")
 
 CONVERTED_DIR = os.path.join(LOCAL_SAVE_DIR, "converted")
 
 DEVICE_ID_FILE = os.path.join(LOCAL_SAVE_DIR, "device_id.txt") 
 
-DAILY_UPLOAD_TIME = "17:00"  # 5 PM
+DAILY_UPLOAD_TIME = "09:03"  # 5 PM
 
 # NETWORK_PATH = f"//localhost/destination/{os.getlogin()}@{my_system.Name}/screenshots/"
-NETWORK_PATH = f"X:/{os.getlogin()}@{my_system.Name}/"
+NETWORK_PATH = f"Z:/{os.getlogin()}@{my_system.Name}/"
 # X:\

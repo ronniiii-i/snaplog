@@ -38,35 +38,6 @@ class SnapLogOperations:
             traceback.print_exc()
             return False
 
-    # def convert_binn_to_png(self):
-    #     """Convert .binn screenshots to .png"""
-    #     converted_files = []
-    #     for file in os.listdir(LOCAL_SAVE_DIR):
-    #         if not file.endswith(".binn"):
-    #             continue
-                
-    #         binn_path = os.path.join(LOCAL_SAVE_DIR, file)
-    #         timestamp = file.replace("screen_", "").replace(".binn", "")
-    #         png_name = f"{self.device_id}_{timestamp}.png"
-    #         png_path = os.path.join(CONVERTED_DIR, png_name)
-
-    #         try:
-    #             with mss.mss() as sct:
-    #                 raw = open(binn_path, "rb").read()
-    #                 monitor = sct.monitors[1]
-    #                 img = tools.to_png(raw, (monitor["width"], monitor["height"]))
-    #                 with open(png_path, "wb") as out:
-    #                     out.write(img)
-                
-    #             os.remove(binn_path)
-    #             converted_files.append(png_name)
-    #             print(f"[✓] Converted: {file} → {png_name}")
-                
-    #         except Exception as e:
-    #             print(f"[!] Failed to convert {file}: {str(e)}")
-    #             continue
-                
-    #     return bool(converted_files)  # Return True if any files were converted
 
     def transfer_files(self):
         """Transfer files to network path"""
