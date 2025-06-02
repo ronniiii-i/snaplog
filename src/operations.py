@@ -2,92 +2,83 @@ import os
 import wmi
 import subprocess
 from datetime import datetime
-from mss import tools
-import mss
 import logging
 import traceback
 import shutil
 
+# Import the updated config, specifically DEVICE_ID and NETWORK_BASE_PATH
+from src.config import LOCAL_SAVE_DIR, DEVICE_ID, NETWORK_BASE_PATH
 
-c = wmi.WMI() 
-my_system = c.Win32_ComputerSystem()[0]
-os.makedirs("logs", exist_ok=True)
-from src.config import (LOCAL_SAVE_DIR, 
-                       NETWORK_PATH, DEVICE_ID_FILE)
+logger = logging.getLogger(__name__)
 
 class SnapLogOperations:
     def __init__(self):
-        self.device_id = self._get_device_id()
-        # os.makedirs(CONVERTED_DIR, exist_ok=True)
-
-    def _get_device_id(self):
-        """Handle device ID creation/loading"""
-        return f"{os.getlogin()}@{my_system.Name}"
+        self.device_id = DEVICE_ID # Use the DEVICE_ID from config
+        # Construct the specific network path for this device's raw screenshots
+        self.network_device_raw_path = os.path.join(NETWORK_BASE_PATH, self.device_id, "raw")
+        logger.info(f"Client network upload path: {self.network_device_raw_path}")
 
     def _ensure_network_dir(self):
-        """Ensure network directory exists"""
+        """Ensure the device-specific network directory for raw files exists."""
         try:
-            if not os.path.exists(NETWORK_PATH):
-                os.makedirs(NETWORK_PATH, exist_ok=True)
-                print(f"[NETWORK] Created network directory: {NETWORK_PATH}")
+            if not os.path.exists(self.network_device_raw_path):
+                os.makedirs(self.network_device_raw_path, exist_ok=True)
+                logger.info(f"[NETWORK] Created network directory: {self.network_device_raw_path}")
             else:
-                print(f"[NETWORK] Network directory exists: {NETWORK_PATH}")
+                logger.info(f"[NETWORK] Network directory exists: {self.network_device_raw_path}")
             return True
         except Exception as e:
-            print(f"[NETWORK] Failed to access or create directory: {str(e)}")
+            logger.error(f"[NETWORK] Failed to access or create directory {self.network_device_raw_path}: {str(e)}")
             traceback.print_exc()
             return False
 
-
     def transfer_files(self):
-        """Transfer files to network path"""
+        """Transfer files from LOCAL_SAVE_DIR to the device-specific network raw path."""
         if not self._ensure_network_dir():
+            logger.warning("Network directory not accessible, skipping file transfer.")
             return False
-            
-        files_to_transfer = os.listdir(LOCAL_SAVE_DIR)
+
+        files_to_transfer = [f for f in os.listdir(LOCAL_SAVE_DIR) if f.endswith(".binn")]
         if not files_to_transfer:
-            print("[!] No files to transfer")
+            logger.info("[!] No .binn files to transfer in local save directory.")
             return False
-            
+
         success_count = 0
         for file in files_to_transfer:
             local_path = os.path.join(LOCAL_SAVE_DIR, file)
-            network_path = os.path.join(NETWORK_PATH, file)
-            
+            network_path = os.path.join(self.network_device_raw_path, file)
+
             try:
-                print(f"[→] Transferring {file}...")
+                logger.info(f"[→] Transferring {file} to {self.network_device_raw_path}...")
                 shutil.copy2(local_path, network_path)
 
-                # Verify transfer
-                if os.path.getsize(local_path) == os.path.getsize(network_path):
-                    os.remove(local_path)
+                # Verify transfer by size
+                if os.path.exists(network_path) and os.path.getsize(local_path) == os.path.getsize(network_path):
+                    os.remove(local_path) # Remove local file after successful transfer
                     success_count += 1
-                    print(f"[✓] Transferred {file}")
+                    logger.info(f"[✓] Successfully transferred and removed local file: {file}")
                 else:
-                    print(f"[!] Size mismatch for {file}")
-                    
+                    logger.warning(f"[!] Size mismatch or file not found on network for {file}. Keeping local copy.")
+
             except Exception as e:
-                print(f"[!] Failed to transfer {file}: {str(e)}")
+                logger.error(f"[!] Failed to transfer {file}: {str(e)}")
                 traceback.print_exc()
                 continue
-                
+
+        logger.info(f"Transferred {success_count} out of {len(files_to_transfer)} files.")
         return success_count > 0
 
-    def run_conversion_and_transfer(self):
-        """Orchestrate full workflow"""
+    def run_transfer_pipeline(self):
+        """Orchestrate the file transfer workflow."""
         try:
-            # if not self.convert_binn_to_png():
-            #     print("[!] No files converted")
-            #     return False
-
             transfer_result = self.transfer_files()
             if not transfer_result:
-                print("[!] Transfer failed")
+                logger.warning("[!] File transfer pipeline completed with no successful transfers or encountered issues.")
                 return False
-
+            logger.info("[✓] File transfer pipeline completed successfully.")
             return True
-
         except Exception as e:
-            print(f"[!!!] Fatal error in transfer pipeline: {str(e)}")
+            logger.critical(f"[!!!] Fatal error in transfer pipeline: {str(e)}")
             traceback.print_exc()
             return False
+
