@@ -4,6 +4,7 @@ import mss
 import threading
 from datetime import datetime, timedelta
 import logging
+import json # New import for JSON handling
 
 # Import updated config module
 from src.config import LOCAL_SAVE_DIR, load_client_config, DEVICE_ID
@@ -22,9 +23,10 @@ class MonitorService:
         logger.info(f"Initial configuration: {self.current_config}")
 
     def take_screenshot(self):
-        """Captures a screenshot and saves it as a .binn file."""
+        """Captures a screenshot and saves it as a .binn file, along with a .json metadata file."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = os.path.join(LOCAL_SAVE_DIR, f"screen_{timestamp}.binn")
+        binn_filename = os.path.join(LOCAL_SAVE_DIR, f"screen_{timestamp}.binn")
+        json_filename = os.path.join(LOCAL_SAVE_DIR, f"screen_{timestamp}.json")
 
         try:
             with mss.mss() as sct:
@@ -33,11 +35,23 @@ class MonitorService:
                 # If you have multiple monitors, you might need to adjust this or iterate.
                 monitor = sct.monitors[1] # Or sct.monitors[0] for primary display
                 screenshot = sct.grab(monitor)
-                with open(filename, "wb") as f:
+                
+                # Save raw screenshot data
+                with open(binn_filename, "wb") as f:
                     f.write(screenshot.rgb)
-            logger.info(f"[+] Screenshot saved: {filename}")
+                logger.info(f"[+] Screenshot saved: {binn_filename}")
+
+                # Save metadata (width and height)
+                metadata = {
+                    "width": monitor["width"],
+                    "height": monitor["height"]
+                }
+                with open(json_filename, "w") as f:
+                    json.dump(metadata, f)
+                logger.info(f"[+] Metadata saved: {json_filename} (Width: {metadata['width']}, Height: {metadata['height']})")
+
         except Exception as e:
-            logger.error(f"Failed to take screenshot: {e}")
+            logger.error(f"Failed to take screenshot or save metadata: {e}")
             # If screenshot fails, still allow the loop to continue
             pass
 
@@ -98,13 +112,8 @@ class MonitorService:
                 logger.info("\n" + "="*50)
                 logger.info(f"[*] Upload triggered for {upload_type} schedule.")
                 
-                # Signal monitoring thread to pause (optional, if you want to ensure no new screenshots during upload)
-                # self.stop_monitoring.set() 
-                
                 try:
-                    binn_files = [f for f in os.listdir(LOCAL_SAVE_DIR) if f.endswith(".binn")]
-                    logger.info(f"Found {len(binn_files)} screenshots to transfer.")
-
+                    # The transfer_files method in operations.py will now handle both .binn and .json files
                     if self.ops.run_transfer_pipeline():
                         logger.info("[✓] Transfer completed successfully.")
                     else:
@@ -115,8 +124,6 @@ class MonitorService:
                     import traceback
                     traceback.print_exc()
                 finally:
-                    # After upload (success or failure), ensure monitoring can resume
-                    # self.stop_monitoring.clear() 
                     logger.info("[*] Upload process finished. Monitoring continues.")
             
             time.sleep(1) # Check every second

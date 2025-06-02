@@ -1,4 +1,6 @@
+# src/config.py
 import os
+import sys
 import wmi
 import json
 from dotenv import load_dotenv
@@ -15,7 +17,20 @@ my_system = c.Win32_ComputerSystem()[0]
 # ====================================================================
 
 # Base directory for local screenshots (e.g., user's home directory)
-LOCAL_SAVE_DIR = os.path.expanduser("~")
+# LOCAL_SAVE_DIR = os.path.expanduser("~")
+
+
+if getattr(sys, 'frozen', False):
+    # Running as a PyInstaller bundle
+    # Use AppData\Roaming for persistent user-specific data
+    local_base_path = os.path.join(os.getenv('APPDATA'), 'SnapLogClient')
+else:
+    # Running as a regular Python script
+    local_base_path = os.path.dirname(os.path.abspath(__file__))
+
+LOCAL_SAVE_DIR = os.path.join(local_base_path, 'temp_raw_data')
+# You'll also need to ensure the logs folder is handled similarly
+LOGS_DIR = os.path.join(local_base_path, 'logs')
 
 # Directory for converted files (on the client, though conversion is now server-side,
 # this might be used for temporary storage or if client-side conversion is re-introduced)
@@ -32,15 +47,17 @@ DEVICE_ID = f"{os.getlogin()}@{my_system.Name}"
 # This is the base path on your shared network drive where all client data will reside.
 # IMPORTANT: You MUST ensure this path is accessible by both clients and the server.
 # For example, if Z: is a mapped network drive, ensure it's correctly mapped on all machines.
-NETWORK_BASE_PATH = "C:/snaplog_data/" # Example: Adjust this to your actual shared network path
+# NETWORK_BASE_PATH = "C:/snaplog_data/" # Example: Adjust this to your actual shared network pathpath
+# NETWORK_BASE_PATH = f"X:/{os.getlogin()}@{my_system.Name}/" # Example: Adjust this to your actual shared network pathpath
+NETWORK_BASE_PATH = "X:/" # Example: Adjust this to your actual shared network pathpath
 
 # Path to the central configuration file for all clients
 CLIENT_CONFIG_FILE = os.path.join(NETWORK_BASE_PATH, "client_configs.json")
 
 # Default values for client settings if not found in the central config
 DEFAULT_SCREENSHOT_INTERVAL = 30  # 5 minutes
-DEFAULT_UPLOAD_TYPE = "daily"      # "daily" or "periodic"
-DEFAULT_UPLOAD_VALUE = "10:58"     # HH:MM for daily, seconds for periodic (e.g., 3600 for 1 hour)
+DEFAULT_UPLOAD_TYPE = "periodic"      # "daily" or "periodic"
+DEFAULT_UPLOAD_VALUE = "150"     # HH:MM for daily, seconds for periodic (e.g., 3600 for 1 hour)
 
 def load_client_config():
     """
