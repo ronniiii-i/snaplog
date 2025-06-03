@@ -26,7 +26,7 @@ if getattr(sys, 'frozen', False):
     local_base_path = os.path.join(os.getenv('APPDATA'), 'SnapLogClient')
 else:
     # Running as a regular Python script
-    local_base_path = os.path.dirname(os.path.abspath(__file__))
+    local_base_path = os.path.dirname(__file__)
 
 LOCAL_SAVE_DIR = os.path.join(local_base_path, 'temp_raw_data')
 # You'll also need to ensure the logs folder is handled similarly
@@ -34,7 +34,7 @@ LOGS_DIR = os.path.join(local_base_path, 'logs')
 
 # Directory for converted files (on the client, though conversion is now server-side,
 # this might be used for temporary storage or if client-side conversion is re-introduced)
-CONVERTED_DIR = os.path.join(LOCAL_SAVE_DIR, "converted")
+# CONVERTED_DIR = os.path.join(LOCAL_SAVE_DIR, "converted")
 
 # Device ID for this client, used to identify it on the server
 # This should be unique for each client machine
