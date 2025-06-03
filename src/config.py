@@ -55,9 +55,9 @@ NETWORK_BASE_PATH = "X:/" # Example: Adjust this to your actual shared network p
 CLIENT_CONFIG_FILE = os.path.join(NETWORK_BASE_PATH, "client_configs.json")
 
 # Default values for client settings if not found in the central config
-DEFAULT_SCREENSHOT_INTERVAL = 30  # 5 minutes
-DEFAULT_UPLOAD_TYPE = "periodic"      # "daily" or "periodic"
-DEFAULT_UPLOAD_VALUE = "150"     # HH:MM for daily, seconds for periodic (e.g., 3600 for 1 hour)
+DEFAULT_SCREENSHOT_INTERVAL = 300  # 5 minutes
+DEFAULT_UPLOAD_TYPE = "daily"      # "daily" or "periodic"
+DEFAULT_UPLOAD_VALUE = "17:00"     # HH:MM for daily, seconds for periodic (e.g., 3600 for 1 hour)
 
 def load_client_config():
     """
